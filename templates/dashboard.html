@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - Tax Regime</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body, html {
+            overflow-x: hidden;
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+        #sidebar {
+            min-width: 220px;
+            max-width: 220px;
+            background: #2c3e50;
+            color: white;
+            transition: all 0.3s;
+            height: 100vh;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            overflow-y: auto;
+        }
+        #sidebar.collapsed {
+            margin-left: -220px;
+        }
+        #sidebar .nav-link {
+            color: white;
+            position: relative;
+            background: none;
+            transition: color 0.3s ease;
+        }
+        #sidebar .nav-link::before {
+            position: absolute;
+            content: "";
+            top: 0;
+            left: -1rem;
+            width: 0.25rem;
+            height: 100%;
+            background: transparent;
+            transition: 0.6s;
+        }
+        #sidebar .nav-link:hover {
+            background: none;
+            color: white;
+        }
+        #sidebar .nav-link:hover::before {
+            left: calc(100% + 1rem);
+            background-image: linear-gradient(90deg, #007bff, #17a2b8, #28a745, #ffc107, #dc3545);
+        }
+        #content {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            padding: 10px 20px;
+            transition: all 0.3s;
+            background: white;
+            border-radius: 0;
+            box-shadow: none;
+            min-height: calc(100vh - 56px);
+            height: calc(100vh - 56px);
+            overflow-y: auto;
+            margin-left: 0;
+            width: 100vw;
+        }
+        #content.expanded {
+            margin-left: 220px;
+            width: calc(100vw - 220px);
+        }
+        .navbar-brand {
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        .submenu {
+            padding-left: 1.5rem;
+        }
+        .input-readonly {
+            background-color: #e9ecef;
+            opacity: 1;
+            color: #495057;
+        }
+        .navbar {
+            background-color: #343a40 !important;
+        }
+        .navbar-text {
+            color: white !important;
+        }
+        button.btn-info, a.btn-info {
+            background-color: #0dcaf0;
+            border-color: #0dcaf0;
+            color: #000;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        button.btn-info:hover, a.btn-info:hover {
+            background-color: #31d2f2;
+            border-color: #31d2f2;
+            color: #000;
+        }
+        p {
+            margin-top: 15px;
+            font-weight: 500;
+        }
+        .form-select {
+            max-width: 200px;
+        }
+        button.btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            font-weight: 600;
+            padding: 8px 20px;
+            margin-top: 15px;
+        }
+        button.btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0b5ed7;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand navbar-dark bg-dark fixed-top">
+    <div class="container-fluid">
+        <span class="navbar-brand" id="sidebarToggle">Tax Regime</span>
+        <div class="d-flex align-items-center ms-auto">
+            <span class="text-white me-3">Welcome {{ user['name'] }}</span>
+<a href="{{ url_for('logout') }}" class="btn btn-danger btn-sm">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div id="sidebar" class="">
+    <nav class="nav flex-column pt-3" id="sidebarNav">
+        <a class="nav-link" href="{{ url_for('dashboard') }}">Home</a>
+        <a class="nav-link" href="{{ url_for('change_password') }}">Change Password</a>
+        <a class="nav-link" data-bs-toggle="collapse" href="#adminSubmenu" role="button" aria-expanded="false" aria-controls="adminSubmenu">Admin</a>
+        <div class="collapse submenu" id="adminSubmenu">
+            <a class="nav-link" href="{{ url_for('admin') }}">View Users</a>
+        </div>
+        <a class="nav-link" href="{{ url_for('tax_regime') }}">Tax Regime</a>
+        <a class="nav-link" href="{{ url_for('my_tax_regime') }}">My Tax Regime</a>
+        <a class="nav-link" href="{{ url_for('report') }}">Report</a>
+    </nav>
+</div>
+
+<div id="content">
+    <h4 class="bg-primary text-white p-2">Request View</h4>
+
+    <div class="alert alert-info text-center mb-3">
+        Tax Regime Switch option facility from default (New Tax Regime) to Old Tax Regime for Financial Year 2025-26
+    </div>
+
+    
+    <h5 class="mt-4"><u>Record Details</u></h5>
+    <form id="taxSwitchForm" method="POST" action="#">
+        <div class="mb-3">
+            <label for="aadhaarInput" class="form-label fw-bold">Aadhaar ID:</label>
+            <input type="text" class="form-control input-readonly" id="aadhaarInput" value="{{ user['aadhaar'] }}" readonly />
+        </div>
+        <div class="mb-3">
+            <label for="nameInput" class="form-label fw-bold">User Name:</label>
+            <input type="text" class="form-control input-readonly" id="nameInput" value="{{ user['name'] }}" readonly />
+        </div>
+        <div class="mb-3">
+            <label for="emailInput" class="form-label fw-bold">E-mail:</label>
+            <input type="email" class="form-control input-readonly" id="emailInput" value="{{ user['email'] }}" readonly />
+        </div>
+    <h5 class="mt-4"><u>Documents : </u></h5>    
+
+        <button id="circularBtn" type="button" class="btn btn-info me-2">Circular</button>
+<a href="https://cleartax.in/paytax/taxcalculator" id="taxCalcBtn" class="btn btn-info" target="_blank" rel="noopener noreferrer">Tax Calculator</a>
+
+
+        <p>You are currently under Income Tax default Option-I (New tax Regime).</p>
+
+        <div class="mb-3 d-flex align-items-center">
+            <label for="switchOption" class="form-label fw-bold mb-0 me-2">
+                Do you want to switch from Option-I (New Tax Regime) to Option-II (Old Tax Regime)?
+            </label>
+            <select class="form-select" id="switchOption" name="switchOption" style="width: auto; display: inline-block;">
+                <option value="No" selected>No</option>
+                <option value="Yes">Yes</option>
+            </select>
+        </div>
+
+        <div id="switchCheckboxes" class="mb-3" style="display:none;">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="readDocuments" name="readDocuments" />
+                <label class="form-check-label" for="readDocuments">
+                    I have read the enclosed documents attached carefully before exercising the switching option.
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="switchOnce" name="switchOnce" />
+                <label class="form-check-label" for="switchOnce">
+                    I can switch only once in a Financial Year.
+                </label>
+            </div>
+        </div>
+
+        <div id="switchDescription" class="mb-3">
+            <p>You are currently under Income Tax default Option-I (New tax Regime). Please read the enclosed documents attached carefully before exercising the switching option. You can switch only once in a Financial Year.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const content = document.getElementById('content');
+
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        content.classList.toggle('expanded');
+        if (sidebar.classList.contains('collapsed')) {
+            content.style.marginLeft = '0';
+            content.style.width = '100%';
+            content.style.paddingLeft = '20px';
+            content.style.paddingRight = '20px';
+            localStorage.setItem('sidebarCollapsed', 'true');
+        } else {
+            content.style.marginLeft = '220px';
+            content.style.width = 'calc(100% - 220px)';
+            content.style.paddingLeft = '10px';
+            content.style.paddingRight = '20px';
+            localStorage.setItem('sidebarCollapsed', 'false');
+        }
+    });
+
+    // Prevent sidebar from closing on nav link click
+    document.getElementById('sidebarNav').addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    // On page load, restore sidebar state from localStorage
+    window.addEventListener('DOMContentLoaded', () => {
+        const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isCollapsed) {
+            sidebar.classList.add('collapsed');
+            content.classList.add('expanded');
+            content.style.marginLeft = '0';
+            content.style.width = '100%';
+            content.style.paddingLeft = '20px';
+            content.style.paddingRight = '20px';
+        } else {
+            sidebar.classList.remove('collapsed');
+            content.classList.remove('expanded');
+            content.style.marginLeft = '220px';
+            content.style.width = 'calc(100% - 220px)';
+            content.style.paddingLeft = '10px';
+            content.style.paddingRight = '20px';
+        }
+    });
+
+    document.getElementById('circularBtn').addEventListener('click', () => {
+        // Open the PDF file in a new tab - placeholder link
+        window.open('/static/file.pdf', '_blank');
+    });
+
+    const switchOption = document.getElementById('switchOption');
+    const switchDescription = document.getElementById('switchDescription');
+
+        switchOption.addEventListener('change', () => {
+            const switchCheckboxes = document.getElementById('switchCheckboxes');
+            if (switchOption.value === 'Yes') {
+                switchDescription.innerHTML = '<p>You have chosen to switch tax regime: YES. Please read the enclosed documents attached carefully before exercising the switching option. You can switch only once in a Financial Year.</p>';
+                switchCheckboxes.style.display = 'block';
+            } else {
+                switchDescription.innerHTML = '<p>You are currently under Income Tax default Option-I (New tax Regime). Please read the enclosed documents attached carefully before exercising the switching option. You can switch only once in a Financial Year.</p>';
+                switchCheckboxes.style.display = 'none';
+            }
+        });
+
+        document.getElementById('taxSwitchForm').addEventListener('submit', function(event) {
+            const switchOption = document.getElementById('switchOption');
+            const readDocuments = document.getElementById('readDocuments');
+            const switchOnce = document.getElementById('switchOnce');
+
+            if (switchOption.value === 'Yes' && readDocuments.checked && switchOnce.checked) {
+                // Trigger download of the circular PDF
+                const link = document.createElement('a');
+                link.href = '/static/file.pdf';
+                link.download = 'circular.pdf';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        });
+
+    // Cycling hover effect for sidebar links
+    var links = document.getElementsByClassName('link');
+    for (var i = 0; i < links.length; i++) {
+        addClass(i);
+    }
+
+    function addClass(id) {
+        setTimeout(function () {
+            if (id > 0) links[id - 1].classList.remove('hover');
+            links[id].classList.add('hover');
+        }, id * 750);
+    }
+</script>
+</body>
+</html>
